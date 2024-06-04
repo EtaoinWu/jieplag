@@ -3,6 +3,7 @@ use core::{
     common::{all_fingerprint, fingerprint, Fingerprint},
     token::Token,
 };
+use indicatif::ProgressIterator;
 use log::*;
 use regex::Regex;
 use std::{collections::HashMap, fs::read_dir, path::PathBuf};
@@ -14,6 +15,9 @@ struct Args {
     #[arg(short, long)]
     source_directory: PathBuf,
 
+    #[arg(short, long)]
+    reference_directory: Option<PathBuf>,
+
     /// Path to template directory
     #[arg(short = 'T', long)]
     template_directory: PathBuf,
@@ -21,6 +25,12 @@ struct Args {
     /// Regex patterns for files to include
     #[arg(short, long)]
     include: Vec<Regex>,
+
+    #[arg(short = 'n', long, default_value_t = 40)]
+    number_of_report: usize,
+
+    #[arg(short = 'c', long, default_value_t = 10)]
+    common_cutoff: usize,
 }
 
 fn main() -> anyhow::Result<()> {
@@ -53,12 +63,26 @@ fn main() -> anyhow::Result<()> {
         }
     }
 
+    let in_reference_dir = |path: &PathBuf| {
+        opts.reference_directory
+            .as_ref()
+            .map_or(false, |dir| path.starts_with(dir))
+    };
+
     // walk source directory
     info!("Processing source directory");
     let submissions = read_dir(&opts.source_directory).unwrap();
+    let references = opts.reference_directory.as_ref().map_or(Vec::new(), |dir| {
+        read_dir(&dir).unwrap().collect::<Vec<_>>()
+    });
     // map: file => submission => tokens
     let mut all_tokens: HashMap<PathBuf, HashMap<PathBuf, Vec<Token>>> = HashMap::new();
-    for submission in submissions {
+    for submission in submissions
+        .chain(references)
+        .collect::<Vec<_>>()
+        .into_iter()
+        .progress()
+    {
         let submission = submission?;
         if !submission.file_type()?.is_dir() {
             continue;
@@ -92,6 +116,7 @@ fn main() -> anyhow::Result<()> {
     }
 
     info!("Tokenized {} files in source directory", all_tokens.len());
+
     for submission in all_tokens.keys() {
         info!("Processing file {}", submission.display());
         let keys: Vec<&PathBuf> = all_tokens[submission].keys().collect();
@@ -109,7 +134,7 @@ fn main() -> anyhow::Result<()> {
         for (i, key) in keys.iter().enumerate() {
             let token = all_tokens[submission][*key].clone();
             let fingerprint = fingerprint(token.iter().map(|t| t.kind), 40, 80);
-            info!(
+            debug!(
                 "{}: {} tokens, {} fingerprints",
                 keys[i].display(),
                 token.len(),
@@ -132,15 +157,15 @@ fn main() -> anyhow::Result<()> {
         let mut m = vec![0; keys.len() * keys.len()];
         for hash in index.keys() {
             let v = &index[hash];
-            if v.len() > 10 {
+            if v.len() > opts.common_cutoff {
                 // too common, skip
                 continue;
             }
 
             if v.len() > 5 {
-                info!("Found {} entries:", v.len());
+                debug!("Found {} entries:", v.len());
                 for (f, i) in v {
-                    info!(
+                    debug!(
                         "{} offset {} L{} C{}",
                         keys[*i].display(),
                         f.offset,
@@ -163,14 +188,17 @@ fn main() -> anyhow::Result<()> {
 
         let mut sorted_m: Vec<_> = m.iter().enumerate().collect();
         sorted_m.sort_by_key(|(_, val)| **val);
-        for (i, matches) in sorted_m.iter().rev().take(40) {
-            let left = i % keys.len();
-            let right = i / keys.len();
-            if left < right {
-                // skip duplicatie
-                continue;
-            }
-            let matches = **matches;
+        for (left, right, matches) in sorted_m
+            .iter()
+            .rev()
+            .map(|(i, matches)| (i % keys.len(), i / keys.len(), **matches))
+            .filter(|(left, right, _)| {
+                let left = *left;
+                let right = *right;
+                left < right && !(in_reference_dir(keys[left]) && in_reference_dir(keys[right]))
+            })
+            .take(opts.number_of_report)
+        {
             // show info
             info!(
                 "Possible plagarism: {} and {}: {} matches",
