@@ -34,6 +34,8 @@ log = "0.4.20"
 adler32 = "1.2.0"
 html-escape = "0.2.13"
 clap = { version = "4.4.6", features = ["derive"] }
+indicatif = "0.18.3"
+random_color = "1.1.0"
 
 # Cpp
 clang = { version = "2.0.0", optional = true }
@@ -52,5 +54,3 @@ proc-macro2 = { version = "1.0.69", features = ["span-locations"], optional = tr
 sqlparser = { version = "0.58.0", optional = true }
 # Verilog
 verilog-lang = { git = "https://github.com/jiegec/verilog-lang", optional = true }
-indicatif = "0.18.3"
-random_color = "1.1.0"
