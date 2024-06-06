@@ -200,14 +200,20 @@ mod tests {
     }
 }
 
-pub fn gen_svg(color: &str, ratio: i32) -> String {
+pub fn gen_svg_with_index(color: &str, ratio: i32, index: Option<usize>) -> String {
     format!(
-        r#"<svg width="60" height="12">
-    <rect width="60" height="12" style="fill:rgba(0,0,0,0);stroke-width:4;stroke:{}"></rect>
-    <rect width="{}" height="12" style="fill:{};"></rect>
+        r#"<svg width="60" height="18">
+    <rect width="60" height="18" style="fill:rgba(0,0,0,0);stroke-width:4;stroke:{}"></rect>
+    <rect width="{}" height="18" style="fill:{};"></rect>
+    <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="{}" font-size="12">{}</text>
 </svg>"#,
         color,
         60 * ratio / 100,
-        color
+        color,
+        color,
+        index.map_or("".to_string(), |i| i.to_string())
     )
+}
+pub fn gen_svg(color: &str, ratio: i32) -> String {
+    gen_svg_with_index(color, ratio, None)
 }

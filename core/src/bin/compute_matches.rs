@@ -1,5 +1,6 @@
 use clap::Parser;
-use core::{common::gen_svg, lang::tokenize, matching::compute_matches_from_token};
+use core::{common::gen_svg_with_index, lang::tokenize, matching::compute_matches_from_token};
+use random_color::{Luminosity, RandomColor};
 use rkr_gst::Match;
 use std::{
     fs::File,
@@ -69,7 +70,6 @@ fn main() -> anyhow::Result<()> {
 
         let mut last_line = 0;
 
-        let colors = ["#FF0000", "#00FF00", "#0000FF", "#00FFFF", "#FF00FF"];
         let mut matches: Vec<(usize, &Match)> = matches.iter().enumerate().collect();
 
         // sort by line_from
@@ -106,9 +106,12 @@ fn main() -> anyhow::Result<()> {
             }
             last_line = line_to + 1;
 
-            let color = colors[idx % 5];
+            let color = RandomColor::new()
+                .luminosity(Luminosity::Bright)
+                .seed((idx + 1) as u64)
+                .to_hex();
             write!(file, "<font color=\"{}\">", color)?;
-            writeln!(file, "{}", gen_svg(color, 0))?;
+            writeln!(file, "{}", gen_svg_with_index(color.as_str(), 0, Some(idx + 1)))?;
             writeln!(
                 file,
                 "{}",
