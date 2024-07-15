@@ -21,6 +21,12 @@ struct Args {
     /// Path to template source
     #[arg(short, long)]
     template: Option<PathBuf>,
+
+    #[arg(short = 'S', long, default_value_t = 40)]
+    rkr_gst_initial_search_length: usize,
+
+    #[arg(short = 'M', long, default_value_t = 20)]
+    rkr_gst_minimum_match_length: usize,
 }
 
 fn read_file_lines(s: &Path) -> anyhow::Result<Vec<String>> {
@@ -58,6 +64,8 @@ fn main() -> anyhow::Result<()> {
             .map(|l| l.as_str())
             .collect::<Vec<&str>>(),
         template_kind.as_deref(),
+        Some(opts.rkr_gst_initial_search_length),
+        Some(opts.rkr_gst_minimum_match_length),
     );
 
     for is_left in [true, false] {

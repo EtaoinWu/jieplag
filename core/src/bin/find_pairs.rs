@@ -31,6 +31,12 @@ struct Args {
 
     #[arg(short = 'c', long, default_value_t = 10)]
     common_cutoff: usize,
+
+    #[arg(short='N', long, default_value_t = 40)]
+    winnow_noise: usize,
+
+    #[arg(short='G', long, default_value_t = 80)]
+    winnow_guarantee: usize,
 }
 
 fn main() -> anyhow::Result<()> {
@@ -127,13 +133,13 @@ fn main() -> anyhow::Result<()> {
 
         // https://theory.stanford.edu/~aiken/publications/papers/sigmod03.pdf
         let template_token = &template_tokens[submission];
-        let template_fingerprint = all_fingerprint(template_token.iter().map(|t| t.kind), 40);
+        let template_fingerprint = all_fingerprint(template_token.iter().map(|t| t.kind), opts.winnow_noise);
         let mut local_tokens = vec![];
         let mut local_fingerprints = vec![];
         let mut index: HashMap<u64, Vec<(Fingerprint, usize)>> = HashMap::new();
         for (i, key) in keys.iter().enumerate() {
             let token = all_tokens[submission][*key].clone();
-            let fingerprint = fingerprint(token.iter().map(|t| t.kind), 40, 80);
+            let fingerprint = fingerprint(token.iter().map(|t| t.kind), opts.winnow_noise, opts.winnow_guarantee);
             debug!(
                 "{}: {} tokens, {} fingerprints",
                 keys[i].display(),

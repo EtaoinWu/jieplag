@@ -120,6 +120,8 @@ pub fn work_blocking(req: SubmitRequest) -> anyhow::Result<WorkResult> {
             &req.submissions[right].code,
             req.language,
             &req.template,
+            None,
+            None,
         )?;
 
         let mut left_matched_lines = 0;
