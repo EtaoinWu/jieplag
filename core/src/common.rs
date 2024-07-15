@@ -211,7 +211,7 @@ pub fn gen_svg_with_index(color: &str, ratio: i32, index: Option<usize>) -> Stri
         60 * ratio / 100,
         color,
         color,
-        index.map_or("".to_string(), |i| i.to_string())
+        index.map_or_else(|| "".to_string(), |i| format!("({})", i))
     )
 }
 pub fn gen_svg(color: &str, ratio: i32) -> String {

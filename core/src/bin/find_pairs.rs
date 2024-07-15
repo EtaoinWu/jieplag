@@ -29,7 +29,7 @@ struct Args {
     #[arg(short = 'n', long, default_value_t = 40)]
     number_of_report: usize,
 
-    #[arg(short = 'c', long, default_value_t = 10)]
+    #[arg(short = 'c', long, default_value_t = 50)]
     common_cutoff: usize,
 
     #[arg(short='N', long, default_value_t = 40)]
