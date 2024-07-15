@@ -13,9 +13,11 @@ pub fn compute_matches_from_token(
     token_kind_right: &[u8],
     lines_right: &[&str],
     template_kind: Option<&[u8]>,
+    initial_search_length: Option<usize>,
+    minimum_match_length: Option<usize>,
 ) -> Vec<Match> {
-    let initial_search_length = 40;
-    let minimum_match_length = 20;
+    let initial_search_length = initial_search_length.unwrap_or(40);
+    let minimum_match_length = minimum_match_length.unwrap_or(20);
     let mut matches = rkr_gst::run(
         token_kind_left,
         token_kind_right,
@@ -135,6 +137,8 @@ pub fn compute_matching_blocks_from_text(
     right: &str,
     language: Language,
     template: &Option<String>,
+    initial_search_length: Option<usize>,
+    minimum_match_length: Option<usize>,
 ) -> anyhow::Result<Vec<Block>> {
     let token_left = crate::lang::tokenize_str(left, language)?;
     let token_kind_left: Vec<u8> = token_left.iter().map(|t| t.kind).collect();
@@ -157,6 +161,8 @@ pub fn compute_matching_blocks_from_text(
         &token_kind_right,
         &lines_right,
         template_kind.as_deref(),
+        initial_search_length,
+        minimum_match_length,
     );
 
     let mut res = vec![];
