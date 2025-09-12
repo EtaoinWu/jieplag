@@ -2,7 +2,8 @@ use crate::lang::Tokenize;
 use crate::token::Token;
 use boa_interner::Interner;
 use boa_parser::lexer::token::TokenKind::*;
-use boa_parser::Lexer;
+use boa_parser::source::UTF8Input;
+use boa_parser::{Lexer, Source};
 use std::io::Cursor;
 
 pub struct JavaScript;
@@ -15,7 +16,7 @@ impl Tokenize for JavaScript {
 
 fn tokenize_str(content: &str) -> anyhow::Result<Vec<Token>> {
     let mut res = vec![];
-    let mut lexer = Lexer::new(Cursor::new(content));
+    let mut lexer = Lexer::from(content.as_bytes());
     let mut interner = Interner::new();
     while let Some(token) = lexer.next(&mut interner)? {
         let kind = match token.kind() {
