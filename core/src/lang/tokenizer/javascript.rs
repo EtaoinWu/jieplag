@@ -2,9 +2,7 @@ use crate::lang::Tokenize;
 use crate::token::Token;
 use boa_interner::Interner;
 use boa_parser::lexer::token::TokenKind::*;
-use boa_parser::source::UTF8Input;
-use boa_parser::{Lexer, Source};
-use std::io::Cursor;
+use boa_parser::Lexer;
 
 pub struct JavaScript;
 

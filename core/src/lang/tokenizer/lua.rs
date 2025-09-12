@@ -1,7 +1,9 @@
 use crate::lang::Tokenize;
 use crate::token::Token;
-use full_moon::tokenizer::tokens;
-use full_moon::tokenizer::TokenKind::*;
+use full_moon::{
+    tokenizer::{Lexer, LexerResult, TokenKind::*},
+    LuaVersion,
+};
 
 pub struct Lua;
 
@@ -13,7 +15,14 @@ impl Tokenize for Lua {
 
 fn tokenize_str(content: &str) -> anyhow::Result<Vec<Token>> {
     let mut res = vec![];
-    for token in tokens(content)? {
+    let lexer = Lexer::new(content, LuaVersion::new());
+
+    let tokens = match lexer.collect() {
+        LexerResult::Ok(tokens) => tokens,
+        LexerResult::Fatal(err) => anyhow::bail!("Failed to parse: {:?}", err),
+        LexerResult::Recovered(_, err) => anyhow::bail!("Failed to parse: {:?}", err),
+    };
+    for token in tokens {
         let kind = match token.token_kind() {
             Eof => continue,
             Identifier => 0,
