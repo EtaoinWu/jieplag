@@ -2,17 +2,15 @@ use crate::lang::Tokenize;
 use crate::token::Token;
 use anyhow::anyhow;
 use clang::token::TokenKind;
+use once_cell::sync::Lazy;
 use std::{
     hash::{Hash, Hasher},
     path::Path,
-    sync::Mutex
+    sync::Mutex,
 };
 use tempfile::tempdir;
-use once_cell::sync::Lazy;
 
-static CLANG_LOCK: Lazy<Mutex<()>> = Lazy::new(|| {
-    Mutex::new(())
-});
+static CLANG_LOCK: Lazy<Mutex<()>> = Lazy::new(|| Mutex::new(()));
 
 pub struct Cpp;
 
@@ -75,7 +73,7 @@ mod tests {
 
     #[test]
     fn test_tokenize() {
-        let code = "int main() { return 0; }";
+        let code = "int main() { return 0; } /* comment1 */ // comment2";
         let tokens = tokenize_str(code).unwrap();
 
         eprintln!("{:?}", tokens);
@@ -99,5 +97,7 @@ mod tests {
         assert_eq!(tokens[8].spelling, "}");
         assert_eq!(tokens[8].line, 1);
         assert_eq!(tokens[8].column, 24);
+
+        assert_eq!(tokens.len(), 9);
     }
 }

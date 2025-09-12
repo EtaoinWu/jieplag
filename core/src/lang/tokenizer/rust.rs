@@ -107,7 +107,7 @@ mod tests {
 
     #[test]
     fn test_tokenize() {
-        let code = "fn main() { println!(\"Hello, world!\"); }";
+        let code = "fn main() { println!(\"Hello, world!\"); } /* comment1 */ // comment2";
         let tokens = tokenize_str(code).unwrap();
 
         eprintln!("{:?}", tokens);
@@ -140,6 +140,8 @@ mod tests {
         assert_eq!(tokens[10].spelling, "}");
         assert_eq!(tokens[10].line, 1);
         assert_eq!(tokens[10].column, 40);
+
+        assert_eq!(tokens.len(), 11);
     }
 
     #[test]

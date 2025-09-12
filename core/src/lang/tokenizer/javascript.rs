@@ -51,7 +51,7 @@ mod tests {
     #[test]
     fn test_tokenize() {
         // taken from https://www.w3schools.com/js/js_functions.asp
-        let code = "function myFunction(p1, p2) {\nreturn p1 * p2;\n}";
+        let code = "function myFunction(p1, p2) {\nreturn p1 * p2;\n} /* comment1 */ // comment2";
         let tokens = tokenize_str(code).unwrap();
 
         eprintln!("{:?}", tokens);
@@ -75,5 +75,7 @@ mod tests {
         assert_eq!(tokens[8].spelling, "return");
         assert_eq!(tokens[8].line, 2);
         assert_eq!(tokens[8].column, 1);
+
+        assert_eq!(tokens.len(), 14);
     }
 }
